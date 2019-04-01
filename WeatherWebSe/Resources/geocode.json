@@ -1,0 +1,19 @@
+﻿{
+  "geocodes": [
+    {
+      "longitude": 65.58409,
+      "latitude": 22.16494,
+      "city": "luleå"
+    },
+    {
+      "longitude": 59.57020,
+      "latitude": 18.74391,
+      "city": "stockholm"
+    },
+    {
+      "longitude": 57.70889,
+      "latitude": 11.97348,
+      "city": "göteborg"
+    }
+  ]
+}

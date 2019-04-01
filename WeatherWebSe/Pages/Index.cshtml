@@ -1,0 +1,33 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "WeatherWebSe";
+}
+
+<p>WeatherWebSe</p>
+<div>
+    <hr />
+    <div class="form-group">
+        <label>City:</label>
+        <input id="txtCityName" type="text" class="form-control">
+    </div>
+    <hr />
+    <button id="btnSearch" type="button" class="btn btn-primary">Search</button>
+    <hr />
+    <div class="alert alert-success" role="alert">
+        <p id="currentWeatherData"></p>
+    </div>
+    <div class="alert alert-danger" role="alert">
+        <p id="currentWeatherDataError"></p>
+    </div>
+    <hr />
+    <label>Search History:</label>
+    <ul id="ulWeatherSearches"></ul>
+</div>
+
+@section scripts  
+{
+    <script>$(document).ready(function () {
+            onDocumentReady();
+        });</script>
+}
