@@ -1,6 +1,4 @@
-﻿/// <reference path="sizzle/index.d.ts" />
-/// <reference path="sizzle/index.d.ts" />
-// Type definitions for jquery 3.3
+﻿// Type definitions for jquery 3.3
 // Project: https://jquery.com
 // Definitions by: Leonard Thieu <https://github.com/leonard-thieu>
 //                 Boris Yankov <https://github.com/borisyankov>
@@ -27,6 +25,7 @@
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 // TypeScript Version: 2.3
 
+/// <reference path="sizzle/index.d.ts" />
 /// <reference path="JQueryStatic.d.ts" />
 /// <reference path="JQuery.d.ts" />
 /// <reference path="misc.d.ts" />

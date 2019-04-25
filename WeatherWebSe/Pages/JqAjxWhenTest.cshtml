@@ -1,0 +1,56 @@
+﻿@page
+@model WeatherWebSe.Pages.JqAjxWhenTestModel
+@{
+    ViewData["Title"] = "JqAjxWhenTest";
+}
+
+<input type="hidden" id="txtApiUrl" value="@Model.ApiUrl" />
+
+<h1>JqAjxWhenTest</h1>
+
+<div>
+    <span>Load Forms</span>
+    <button id="btnLoadForm" class="btn btn-primary">LoadForm</button>
+</div>
+
+<div class="row">
+    <div class="col-6">
+        <fieldset class="fieldset border rounded-lg">
+            <legend style="width:auto; font-size:small">Part1</legend>
+            <div class="form-group">
+                <label>Value1</label>
+                <input type="text" class="form-control" id="txtValue1">
+            </div>
+            <button id="btnForm1" class="btn btn-primary">Submit</button>
+        </fieldset>
+    </div>
+
+    <div class="col-6">
+        <fieldset class="fieldset border rounded-lg">
+            <legend style="width:auto; font-size:small">Part2</legend>
+            <div class="form-group">
+                <label>Value2</label>
+                <input type="text" class="form-control" id="txtValue2">
+            </div>
+            <button id="btnForm2" class="btn btn-primary">Submit</button>
+        </fieldset>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+@section scripts
+{
+    <script>
+        $(document).ready(function () {
+            onJqAjxWhenTestLoaded();
+        });
+    </script>
+}

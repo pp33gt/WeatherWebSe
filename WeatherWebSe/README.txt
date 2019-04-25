@@ -1,1 +1,1 @@
-﻿
+﻿https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/sizzle

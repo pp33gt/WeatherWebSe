@@ -15,12 +15,26 @@ namespace WeatherWebSe.Core
     {
         private IWeatherService WeatherService { get; }
         private IGeocodeService GeocodeService { get; }
-        private IConfiguration Configuration { get; }
+        private IConfiguration Config { get; }
+
+        private string apiUrl = null;
+        
+        private string ApiUrl {
+            get {
+                if(apiUrl == null)
+                {
+                    apiUrl = Config.GetValue<string>("apiUrl");
+                }
+                return apiUrl;
+            }
+        } 
+
 
         public WeatherManager(IWeatherService weatherService, IGeocodeService geocodeService, IConfiguration configuration)
         {
             WeatherService = weatherService;
             GeocodeService = geocodeService;
+            Config = configuration;
         }
 
         public async Task<WeatherModel> GetWeatherAsync(string city)
@@ -64,7 +78,7 @@ namespace WeatherWebSe.Core
 
             var lon = coordinate.Longitude.ToString().Replace(",", ".");
             var lat = coordinate.Latitude.ToString().Replace(",", ".");
-            var url = $"{Constants.ApiMockUrl}/Weather/Point/lon/{lon}/lat/{lat}";
+            var url = $"{ApiUrl}{Constants.ApiMockUrl}/Weather/Point/lon/{lon}/lat/{lat}";
             
             var res = await HttpManager.GetAsync(url);
             var obj = JsonConvert.DeserializeObject<SmhiGetPoint>(res);
@@ -77,7 +91,7 @@ namespace WeatherWebSe.Core
 
         private async Task<GeocodeResult> GetGeoCodeByCityNameAsync(string city)
         {
-            var url = $"{Constants.ApiMockUrl}/Geocode/Get?city={city}"; 
+            var url = $"{ApiUrl}{Constants.ApiMockUrl}/Geocode/Get?city={city}"; 
             var geocodeResultJson = await HttpManager.GetAsync(url);
             return JsonConvert.DeserializeObject<GeocodeResult>(geocodeResultJson);
         }
