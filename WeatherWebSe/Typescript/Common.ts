@@ -4,6 +4,14 @@ namespace Common {
 
     export class Control {
 
+        public static setDisable(ctrl: JQuery, disable: boolean) {
+            if (ctrl) {
+                var isDisabled = this.isDisabled(ctrl);
+                if (isDisabled != disable)
+                    ctrl.prop('disabled', disable);
+            }
+        }
+
         public static setDisableAttr(id: string, disable: boolean) {
             var ctrl = $('#' + id);
             if (ctrl) {
@@ -25,14 +33,15 @@ namespace Common {
     export interface IJqAjxWhenTestModel {
         init(keys: Array<string>): void;
         setOnModelUpdated(onModelUpdated?: (model: IJqAjxWhenTestModel) => void): void;
-        getValue(id: string): modelValue;
-        setModelValue(id: string, value?: string, disabled?: boolean): void;
+        getModelValue(id: string): modelValue;
+        setModelValue(id: string, value?: string, disabled?: boolean, list?: Object[]): void;
     }
 
     export class modelValue {
         public readonly id: string;
         private value: string;
         private disabled: boolean;
+        private list: Object[] = new Array();
 
         constructor(id: string, value: string, disabled?: boolean) {
             this.id = id;
@@ -58,6 +67,15 @@ namespace Common {
         set Disabled(disabled: boolean) {
             this.disabled = disabled;
         }
+
+        set List(list: Object[]) {
+            this.list = list;
+        }
+
+        get List() {
+            return this.list;
+        }
+
     }
 
     export class JqAjxWhenTestModel implements Common.IJqAjxWhenTestModel {
@@ -77,7 +95,7 @@ namespace Common {
 
         private modelValues: Array<Common.modelValue> = [];
 
-        public setModelValue(id: string, value?: string, disabled?: boolean) {
+        public setModelValue(id: string, value?: string, disabled?: boolean, list?: Object[]) {
             var doUpdateGui = false;
             this.modelValues.forEach(
                 (item) => {
@@ -92,6 +110,11 @@ namespace Common {
                             doUpdateGui = true;
                         }
 
+                        if (list !== null) {
+                            item.List = list;
+                            doUpdateGui = true;
+                        }
+
                         if (this.onModelUpdated && doUpdateGui)
                             this.onModelUpdated(this);
 
@@ -100,7 +123,7 @@ namespace Common {
                 });
         }
 
-        public getValue(id: string): Common.modelValue {
+        public getModelValue(id: string): Common.modelValue {
             var res: any = null;
             this.modelValues.forEach(
                 (item) => {
@@ -130,23 +153,35 @@ namespace Ajax {
         errorMessage: string;
     }
 
+    export class FormData {
+        public txtValue: string;
+        public prerequisiteValue: string;
+        public historyValues: string[];
+        public delaymsecs: number;
+        constructor(txtValue: string, historyValues: string[], delaymsecs: number, prerequisiteValue: string) {
+            this.txtValue = txtValue
+            this.historyValues = historyValues;
+            this.delaymsecs = delaymsecs;
+            this.prerequisiteValue = prerequisiteValue;
+        }
+    }
+
     export interface IJqAjxWhenService {
         getServerTime(delay: number): JQueryXHR;
-        postServerTimes1(txtValue1: string): JQueryXHR;
-        postServerTimes2(txtValue2: string): JQueryXHR;
+        postServerTimes(data: FormData): JQueryXHR;
     }
 
     export interface IFormDataModel {
-        txtValue1: string;
-        txtValue2: string;
-        ErrorMessage: string;
+        txtValue: string;
+        errorMessage: string;
+        historyValues: string[];
     }
 
     export class Convert {
         public static ArrayToObject(data: Array<object>): Ajax.IAjaxData {
             var res: Ajax.IAjaxData = <Ajax.IAjaxData>new Object();
             res.success = data[0];
-            res.statusText = data[1].toString();
+            res.statusText = data[1] ? data[1].toString(): '';
             res.jqxhr = <JQueryXHR>data[2];
             return res;
         }
@@ -178,36 +213,17 @@ namespace Ajax {
             });
         }
 
-        postServerTimes1(txtValue1: string): JQueryXHR {
-            return $.ajax(
-                {
-                    type: 'post',
-                    url: this.apiUrl + '/Post',
-                    data: JSON.stringify(
-                        {
-                            txtValue1: txtValue1
-                        }),
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    }
-                }
-            ).done((data) => {
-                console.info('done-post:' + data);
-            }).fail((jqXHR: JQueryXHR, textStatus: string, errorThrown: string) => {
-                console.info('err:' + textStatus);
-            });
+        postServerTimes(data: FormData): JQueryXHR {
+            var jsonPostData = JSON.stringify(data);
+            return this.postJson('/Post', jsonPostData);
         }
 
-        postServerTimes2(txtValue2: string): JQueryXHR {
+        private postJson(action: string, jsonData: string): JQueryXHR {
             return $.ajax(
                 {
                     type: 'post',
                     url: this.apiUrl + '/Post',
-                    data: JSON.stringify(
-                        {
-                            txtValue2: txtValue2
-                        }),
+                    data: jsonData,
                     headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json'

@@ -4,6 +4,13 @@ var Common;
     var Control = /** @class */ (function () {
         function Control() {
         }
+        Control.setDisable = function (ctrl, disable) {
+            if (ctrl) {
+                var isDisabled = this.isDisabled(ctrl);
+                if (isDisabled != disable)
+                    ctrl.prop('disabled', disable);
+            }
+        };
         Control.setDisableAttr = function (id, disable) {
             var ctrl = $('#' + id);
             if (ctrl) {
@@ -24,6 +31,7 @@ var Common;
     Common.Control = Control;
     var modelValue = /** @class */ (function () {
         function modelValue(id, value, disabled) {
+            this.list = new Array();
             this.id = id;
             if (value)
                 this.value = value;
@@ -50,6 +58,16 @@ var Common;
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(modelValue.prototype, "List", {
+            get: function () {
+                return this.list;
+            },
+            set: function (list) {
+                this.list = list;
+            },
+            enumerable: true,
+            configurable: true
+        });
         return modelValue;
     }());
     Common.modelValue = modelValue;
@@ -67,7 +85,7 @@ var Common;
         JqAjxWhenTestModel.prototype.setOnModelUpdated = function (onModelUpdated) {
             this.onModelUpdated = onModelUpdated;
         };
-        JqAjxWhenTestModel.prototype.setModelValue = function (id, value, disabled) {
+        JqAjxWhenTestModel.prototype.setModelValue = function (id, value, disabled, list) {
             var _this = this;
             var doUpdateGui = false;
             this.modelValues.forEach(function (item) {
@@ -80,13 +98,17 @@ var Common;
                         item.Disabled = disabled;
                         doUpdateGui = true;
                     }
+                    if (list !== null) {
+                        item.List = list;
+                        doUpdateGui = true;
+                    }
                     if (_this.onModelUpdated && doUpdateGui)
                         _this.onModelUpdated(_this);
                     return false;
                 }
             });
         };
-        JqAjxWhenTestModel.prototype.getValue = function (id) {
+        JqAjxWhenTestModel.prototype.getModelValue = function (id) {
             var res = null;
             this.modelValues.forEach(function (item) {
                 if (item.id === id) {
@@ -104,13 +126,23 @@ var Common;
 })(Common || (Common = {}));
 var Ajax;
 (function (Ajax) {
+    var FormData = /** @class */ (function () {
+        function FormData(txtValue, historyValues, delaymsecs, prerequisiteValue) {
+            this.txtValue = txtValue;
+            this.historyValues = historyValues;
+            this.delaymsecs = delaymsecs;
+            this.prerequisiteValue = prerequisiteValue;
+        }
+        return FormData;
+    }());
+    Ajax.FormData = FormData;
     var Convert = /** @class */ (function () {
         function Convert() {
         }
         Convert.ArrayToObject = function (data) {
             var res = new Object();
             res.success = data[0];
-            res.statusText = data[1].toString();
+            res.statusText = data[1] ? data[1].toString() : '';
             res.jqxhr = data[2];
             return res;
         };
@@ -136,30 +168,15 @@ var Ajax;
                 console.info('err:' + textStatus);
             });
         };
-        JqAjxWhenService.prototype.postServerTimes1 = function (txtValue1) {
-            return $.ajax({
-                type: 'post',
-                url: this.apiUrl + '/Post',
-                data: JSON.stringify({
-                    txtValue1: txtValue1
-                }),
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }
-            }).done(function (data) {
-                console.info('done-post:' + data);
-            }).fail(function (jqXHR, textStatus, errorThrown) {
-                console.info('err:' + textStatus);
-            });
+        JqAjxWhenService.prototype.postServerTimes = function (data) {
+            var jsonPostData = JSON.stringify(data);
+            return this.postJson('/Post', jsonPostData);
         };
-        JqAjxWhenService.prototype.postServerTimes2 = function (txtValue2) {
+        JqAjxWhenService.prototype.postJson = function (action, jsonData) {
             return $.ajax({
                 type: 'post',
                 url: this.apiUrl + '/Post',
-                data: JSON.stringify({
-                    txtValue2: txtValue2
-                }),
+                data: jsonData,
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
