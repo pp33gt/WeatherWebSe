@@ -85,7 +85,7 @@ namespace JqAjaxWhenTest2 {
         private numLoading: number = 0;
 
         protected isFormsLoading(item: databusBase) {
-            if (item.isLoading)
+            if (item.IsLoading)
                 this.numLoading += 1;
             else
                 this.numLoading -= 1;
@@ -94,6 +94,24 @@ namespace JqAjaxWhenTest2 {
                 disableForm = true;
             }
             return disableForm;
+        }
+
+        public handleDataBus(ajaxMethod: () => JQueryXHR, databusModel: databusBase, model: ServerTimeModel): JQueryXHR {
+
+            databusModel.setLoading(true);            
+            this._databus.push(databusModel);
+
+            return ajaxMethod().done((data: Ajax.IServerTime) => {
+                var errorMsg = data.errorMessage === null ? '' : data.errorMessage;
+                model.error = errorMsg;
+            }).fail((jqXHR, textStatus, errorThrown) => {
+                var errorMsg = 'textStatus: ' + textStatus + ' jqXHR.status ' + jqXHR.status + ' errorThrown: ' + errorThrown;
+                model.error = errorMsg;
+            }).always(() => {
+                databusModel.setLoading(false);
+                databusModel.update(model);
+                this._databus.push(databusModel);
+            });
         }
     }
 
@@ -151,13 +169,13 @@ namespace JqAjaxWhenTest2 {
         private onData(item: databusBase) {
             switch (item.kind) {
                 case databusBase.databusModel1:
-                    this.part1Loading = item.isLoading;
+                    this.part1Loading = item.IsLoading;
                     break;
                 case databusBase.databusModel2:
-                    this.part2Loading = item.isLoading;
+                    this.part2Loading = item.IsLoading;
                     break;
                 case databusBase.databusModel3:
-                    this.part3Loading = item.isLoading;
+                    this.part3Loading = item.IsLoading;
                     break;
             }
             var disable = false;
@@ -238,11 +256,8 @@ namespace JqAjaxWhenTest2 {
         }
 
         private onBtnFormClick(): JQuery.Promise<any> {
-            var model = this._model;
             var deferred = $.Deferred();
 
-            model.history.push((new Date()).toString());
-            this.updateGui();
             this.postForm().done(() => {
                 deferred.resolve();
             });
@@ -254,47 +269,46 @@ namespace JqAjaxWhenTest2 {
             this.updateGui();
         }
 
-        public fetchServerTime():JQueryXHR {
-            var model = this._model;
+        public fetchServerTime(): JQueryXHR {
+            var model = this.model;
             model.serverTime = null;
             this.updateGui();
-            this._databus.addData(new databusModel1(true, model));
 
-            var getFormData = () => this._service.getServerTime(10000)
+            var databusModel = new databusModel1(model);
+
+            var getFormData = (): JQueryXHR => this._service.getServerTime(5000)
                 .done((data: Ajax.IServerTime) => {
-                    var errorMsg = data.errorMessage === null ? '' : data.errorMessage;
-                    model.error = errorMsg;
                     model.serverTime = data.result;
+                }).fail((jqXHR, textStatus, errorThrown) => {
+                }).always(() => {
                     this.updateGui();
-                    this._databus.addData(new databusModel1(false, model));
-                })
-                .fail((jqXHR, textStatus, errorThrown) => {
-                    var errorMsg = 'textStatus: ' + textStatus + ' jqXHR.status ' + jqXHR.status + ' errorThrown: ' + errorThrown;
-                    model.error = errorMsg;
                 });
 
-            return getFormData();
+            return this.handleDataBus(getFormData, databusModel, model);
         }
 
         public postForm(): JQueryXHR {
-            var model = this._model;
-            var value = $('#' + this.txtValue1).val().toString();
-            var history = model.history;
-            var form1Data = new Ajax.FormData(value, history, 5000, '');
+            var model = this.model;
 
-            this._databus.addData(new databusModel1(true, model));
-            return this._service.postServerTimes(
-                form1Data)
+            model.history.push((new Date()).toString());
+            var history = model.history.splice(0);
+            model.history = new Array<string>();
+            var value = $('#' + this.txtValue1).val().toString();
+            var formData = new Ajax.FormData(value, history, 5000, '');
+
+            this.updateGui();
+
+            var postServerTimes = (): JQueryXHR => this._service.postServerTimes(formData)
                 .done((data: Ajax.IFormDataModel) => {
-                    var errorMsg = data.errorMessage === null ? '' : data.errorMessage;
-                    model.error = errorMsg;
                     model.history = data.historyValues;
-                    this._databus.addData(new databusModel1(false, model));
                 })
                 .fail((jqXHR, textStatus, errorThrown) => {
-                    var errorMsg = 'textStatus: ' + textStatus + ' jqXHR.status ' + jqXHR.status + ' errorThrown: ' + errorThrown;
-                    model.error = errorMsg;
+                }).always(() => {
+                    this.updateGui();
                 });
+
+            var databusModel = new databusModel1(model);
+            return this.handleDataBus(postServerTimes, databusModel, model);
         }
 
         public updateGui() {
@@ -345,7 +359,7 @@ namespace JqAjaxWhenTest2 {
         private onDataBusEvt(item: databusBase) {
             switch (item.kind) {
                 case databusBase.databusModel1:
-                    this.model.preReqServerTime1 = item.serverTime;
+                    this.model.preReqServerTime1 = item.ServerTime;
                     break;
             }
 
@@ -365,8 +379,6 @@ namespace JqAjaxWhenTest2 {
             var model = this.model;
             var deferred = $.Deferred();
 
-            model.history.push((new Date()).toString());
-            this.updateGui();
             this.postForm(model.preReqServerTime1).done(() => {
                 deferred.resolve();
             });
@@ -380,46 +392,44 @@ namespace JqAjaxWhenTest2 {
 
         public fetchServerTime(): JQueryXHR {
             var model = this.model;
-
             model.serverTime = null;
             this.updateGui();
-            this._databus.addData(new databusModel2(true, model));
 
-            var getFormData = () => this._service.getServerTime(5000)
+            var databusModel = new databusModel2(model);
+
+            var getFormData = (): JQueryXHR => this._service.getServerTime(10000)
                 .done((data: Ajax.IServerTime) => {
-                    var errorMsg = data.errorMessage === null ? '' : data.errorMessage;
-                    model.error = errorMsg;
                     model.serverTime = data.result;
+                }).fail((jqXHR, textStatus, errorThrown) => {
+                }).always(() => {
                     this.updateGui();
-                    this._databus.addData(new databusModel2(false, model));
-                })
-                .fail((jqXHR, textStatus, errorThrown) => {
-                    var errorMsg = 'textStatus: ' + textStatus + ' jqXHR.status ' + jqXHR.status + ' errorThrown: ' + errorThrown;
-                    model.error = errorMsg;
                 });
 
-            return getFormData();
+            return this.handleDataBus(getFormData, databusModel, model);
         }
 
         public postForm(prerequisiteValue: string): JQueryXHR {
-            var model = this._model;
-            var value = $('#' + this.txtValue2).val().toString();
-            var history = model.history;
-            var form1Data = new Ajax.FormData(value, history, 5000, prerequisiteValue);            
+            var model = this.model;
 
-            this._databus.addData(new databusModel2(true, model));
-            return this._service.postServerTimes(
-                form1Data)
+            model.history.push((new Date()).toString());
+            var history = model.history.splice(0);
+            model.history = new Array<string>();
+            var value = $('#' + this.txtValue2).val().toString();
+            var formData = new Ajax.FormData(value, history, 5000, prerequisiteValue);
+
+            this.updateGui();
+
+            var postServerTimes = (): JQueryXHR => this._service.postServerTimes(formData)
                 .done((data: Ajax.IFormDataModel) => {
-                    var errorMsg = data.errorMessage === null ? '' : data.errorMessage;
-                    model.error = errorMsg;
                     model.history = data.historyValues;
-                    this._databus.addData(new databusModel2(false, model));
                 })
                 .fail((jqXHR, textStatus, errorThrown) => {
-                    var errorMsg = 'textStatus: ' + textStatus + ' jqXHR.status ' + jqXHR.status + ' errorThrown: ' + errorThrown;
-                    model.error = errorMsg;
+                }).always(() => {
+                    this.updateGui();
                 });
+
+            var databusModel = new databusModel2(model);
+            return this.handleDataBus(postServerTimes, databusModel, model);
         }
 
         public updateGui() {
@@ -473,7 +483,7 @@ namespace JqAjaxWhenTest2 {
         private onDataBusEvt(item: databusBase) {
             switch (item.kind) {
                 case databusBase.databusModel1:
-                    this.model.preReqServerTime1 = item.serverTime;
+                    this.model.preReqServerTime1 = item.ServerTime;
                     break;
             }
 
@@ -491,9 +501,8 @@ namespace JqAjaxWhenTest2 {
 
         private onBtnFormClick(): JQuery.Promise<any> {
             var model = this.model;
+
             var deferred = $.Deferred();
-            model.history.push((new Date()).toString());
-            this.updateGui();
             this.postForm(model.preReqServerTime1).done(() => {
                 deferred.resolve();
             });
@@ -509,41 +518,42 @@ namespace JqAjaxWhenTest2 {
             var model = this.model;
             model.serverTime = null;
             this.updateGui();
-            this._databus.addData(new databusPart3(true, model));
 
-            var getFormData = () => this._service.getServerTime(5000)
+            var databusModel = new databusModel3(model);
+
+            var getFormData = (): JQueryXHR => this._service.getServerTime(5000)
                 .done((data: Ajax.IServerTime) => {
-                    var errorMsg = data.errorMessage === null ? '' : data.errorMessage;            
-                    model.error = errorMsg;
-                    model.serverTime = data.result;
+                    model.serverTime = data.result;0
+                }).fail((jqXHR, textStatus, errorThrown) => {
+                }).always(() => {
                     this.updateGui();
-                    this._databus.addData(new databusPart3(false, model));
-                })
-                .fail((jqXHR, textStatus, errorThrown) => {
-                    var errorMsg = 'textStatus: ' + textStatus + ' jqXHR.status ' + jqXHR.status + ' errorThrown: ' + errorThrown;
-                    model.error = errorMsg;
                 });
 
-            return getFormData();
+            return this.handleDataBus(getFormData, databusModel, model);
         }
 
         public postForm(prerequisiteValue: string): JQueryXHR {
             var model = this.model;
+            
+            model.history.push((new Date()).toString());            
+            var history = model.history.splice(0);
+            model.history = new Array<string>();
             var value = $('#' + this.txtValue3).val().toString();
-            var history = model.history;
             var formData = new Ajax.FormData(value, history, 5000, prerequisiteValue);
-            this._databus.addData(new databusPart3(true, model));
-            return this._service.postServerTimes(formData)
+            
+            this.updateGui();
+
+            var postServerTimes = (): JQueryXHR => this._service.postServerTimes(formData)
                 .done((data: Ajax.IFormDataModel) => {
-                    var errorMsg = data.errorMessage === null ? '' : data.errorMessage;
-                    model.error = errorMsg;
                     model.history = data.historyValues;
-                    this._databus.addData(new databusPart3(false, model));
                 })
                 .fail((jqXHR, textStatus, errorThrown) => {
-                    var errorMsg = 'textStatus: ' + textStatus + ' jqXHR.status ' + jqXHR.status + ' errorThrown: ' + errorThrown;
-                    model.error = errorMsg;
+                }).always(() => {
+                    this.updateGui();
                 });
+
+            var databusModel = new databusModel3(model);   
+            return this.handleDataBus(postServerTimes, databusModel, model);
         }
 
         public updateGui() {
@@ -568,43 +578,68 @@ namespace JqAjaxWhenTest2 {
 
     interface Idatabus {
         addListener(listener: (obj: databusBase) => void);
-        addData(obj: databusBase);
+        push(obj: databusBase);
         notify();
     }
 
     abstract class databusBase {
         readonly kind: string;
-        readonly serverTime: string = '';
-        readonly isLoading: boolean = false;
+        protected serverTime: string = null;
+        private isLoading: boolean = false;
 
-        constructor(kind: string, isLoading: boolean, serverTime: string) {
+        constructor(kind: string, serverTime: string) {
             this.kind = kind;
-            this.isLoading = isLoading;
             this.serverTime = serverTime;
         }
 
         public static databusModel1: string = 'databusModel1';
         public static databusModel2: string = 'databusModel2';
         public static databusModel3: string = 'databusModel3';
+
+        public setLoading(loading :boolean) {
+            this.isLoading = loading;
+        }
+
+        get IsLoading(): boolean {
+            return this.isLoading;
+        }
+
+        get ServerTime(): string {
+            return this.serverTime;
+        }
+
+        public abstract update(model: ServerTimeModel);
     } 
 
     class databusModel1 extends databusBase {
-        constructor(isLoading: boolean, model: ServerTimeModel)
+        constructor(model: ServerTimeModel)
         {
-            super(databusBase.databusModel1, isLoading, model.serverTime);
+            super(databusBase.databusModel1, model.serverTime);
+        }
+
+        public update(model: ServerTimeModel) {
+            this.serverTime = model.serverTime;
         }
     } 
 
     class databusModel2 extends databusBase{
-        constructor(isLoading: boolean, model: ServerTimeModel)
+        constructor(model: ServerTimeModel)
         {
-            super(databusBase.databusModel2, isLoading, model.serverTime);
+            super(databusBase.databusModel2, model.serverTime);
+        }
+
+        public update(model: ServerTimeModel) {
+            this.serverTime = model.serverTime;
         }
     }
 
-    class databusPart3 extends databusBase {
-        constructor(isLoading: boolean, model: ServerTimeModel) {
-            super(databusBase.databusModel3, isLoading, model.serverTime);
+    class databusModel3 extends databusBase {
+        constructor(model: ServerTimeModel) {
+            super(databusBase.databusModel3, model.serverTime);
+        }
+
+        public update(model: ServerTimeModel) {
+            this.serverTime = model.serverTime;
         }
     } 
 
@@ -622,7 +657,7 @@ namespace JqAjaxWhenTest2 {
             this._listeners.push(listener);
         }
 
-        public addData(obj: databusBase) {
+        public push(obj: databusBase) {
             this._databusItems.push(obj);
             this.notify();
         }

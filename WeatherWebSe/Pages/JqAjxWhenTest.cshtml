@@ -8,73 +8,129 @@
 
 <h1>JqAjxWhenTest</h1>
 
-<div>
-    <span>Load Forms</span>
-    <button id="btnLoadForm" class="btn btn-primary">Load Multiple Server Times</button>
-</div>
-
-
 <div class="row">
-    <div class="col-6">
-        <fieldset class="fieldset border rounded-lg">
-            <legend style="width:auto; font-size:small">Part1</legend>
-            <div class="alert alert-danger" role="alert">
-                <p id="currentWeatherDataError1"></p>
-            </div>
-            <div class="form-group">
-                <input disabled type="text" class="form-control" id="txtServerTime1">
-                <label>Value1</label>
-                <input type="text" class="form-control" id="txtValue1">
-            </div>
-            <button id="btnForm1" class="btn btn-primary">Submit</button>
-            <div class="alert alert-success" role="alert" style="font-size: 0.75rem;">
-                <ul id="ulClientTimeHistory1"></ul>
-            </div>
-        </fieldset>
-    </div>    
-</div>
+    <div class="col-12">
+        <fieldset class="fieldset border rounded-lg" style="padding:1rem; background-color: lightgrey;">
+            <legend style="width:auto; font-size:small">Load Multiple Server Times</legend>
 
-<div class="row">
-    <div class="col-6">
-        <fieldset class="fieldset border rounded-lg">
-            <legend style="width:auto; font-size:small">Part2</legend>
-            <div class="alert alert-danger" role="alert">
-                <p id="currentWeatherDataError2"></p>
+            <div class="row">
+                <div class="col-6">
+                    <fieldset class="fieldset border rounded-lg" style="padding:1rem;">
+                        <legend style="width:auto; font-size:small">Part1</legend>
+                        <div class="alert alert-danger" role="alert">
+                            <p id="currentWeatherDataError1"></p>
+                        </div>
+                        <div class="form-group" style="background-color: gold;">
+                            <label style="font-size:small">ServerTime</label>
+                            <input disabled type="text" class="form-control" id="txtServerTime1">
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <div class="form-group">
+                                    <label style="font-size:small">Post-Value1</label>
+                                    <input type="text" class="form-control" id="txtValue1">
+                                </div>
+                            </div>
+                            <div class="col">
+                                <label style="font-size:small"></label><br />
+                                <button id="btnForm1" class="btn btn-primary">Submit</button>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <div class="alert alert-success" role="alert" style="font-size: 0.75rem;">
+                                    <ul id="ulClientTimeHistory1"></ul>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+                <div class="col-6">
+                    <fieldset style="padding: 1rem;">
+                        <button id="btnLoadForm" class="btn" style="background-color: gold">Load</button>
+                    </fieldset>
+                </div>
             </div>
-            <div class="form-group">
-                <input disabled type="text" class="form-control" id="txtServerTime2">
-                <label>PreReqPart1</label>
-                <input type="text" disabled class="form-control" id="txtPreReqPart1_2">
-                <label>Value2</label>
-                <input type="text" class="form-control" id="txtValue2">
-            </div>
-            <button id="btnForm2" class="btn btn-primary">Submit</button>
-            <div class="alert alert-success" role="alert" style="font-size: 0.75rem;">
-                <ul id="ulClientTimeHistory2"></ul>
+            <div class="row">
+                <div class="col">
+                    <fieldset class="fieldset border rounded-lg" style="padding:0.5rem;background-color: slategrey;">
+                        <legend style="width:auto; font-size:small">Part2</legend>
+                        <div class="alert alert-danger" role="alert">
+                            <p id="currentWeatherDataError2"></p>
+                        </div>
+                        <div class="form-group" style="background-color: gold;">
+                            <label style="font-size:small">PreReq-Part1</label>
+                            <input type="text" disabled class="form-control" id="txtPreReqPart1_2">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:small">ServerTime</label>
+                            <input disabled type="text" class="form-control" id="txtServerTime2">
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <div class="form-group">
+                                    <div class="form-group">
+                                        <label style="font-size:small">Post-Value2</label>
+                                        <input type="text" class="form-control" id="txtValue2">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <label style="font-size:small;">&nbsp;</label><br />
+                                <button id="btnForm2" class="btn btn-primary">Submit</button>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <div class="alert alert-success" role="alert" style="font-size: 0.75rem;">
+                                    <ul id="ulClientTimeHistory2"></ul>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+                <div class="col">
+                    <fieldset class="fieldset border rounded-lg" style="padding:0.5rem;background-color: slategrey;">
+                        <legend style="width:auto; font-size:small">Part3</legend>
+                        <div class="alert alert-danger" role="alert">
+                            <p id="currentWeatherDataError3"></p>
+                        </div>
+                        <div class="form-group" style="background-color: gold;">
+                            <label style="font-size:small">PreReq-Part1</label>
+                            <input type="text" disabled class="form-control" id="txtPreReqPart1_3">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:small">ServerTime</label>
+                            <input disabled type="text" class="form-control" id="txtServerTime3">
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <div class="form-group">
+                                    <div class="form-group">
+                                        <label style="font-size:small">Post-Value3</label>
+                                        <input type="text" class="form-control" id="txtValue3">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <label style="font-size:small"></label><br />
+                                <button id="btnForm3" class="btn btn-primary">Submit</button>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <div class="alert alert-success" role="alert" style="font-size: 0.75rem;">
+                                    <ul id="ulClientTimeHistory3"></ul>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
             </div>
         </fieldset>
     </div>
-
-    <div class="col-6">
-        <fieldset class="fieldset border rounded-lg">
-            <legend style="width:auto; font-size:small">Part3</legend>
-            <div class="alert alert-danger" role="alert">
-                <p id="currentWeatherDataError3"></p>
-            </div>
-            <div class="form-group">
-                <input disabled type="text" class="form-control" id="txtServerTime3">
-                <label>PreReqPart1</label>
-                <input type="text" disabled class="form-control" id="txtPreReqPart1_3">
-                <label>Value3</label>
-                <input type="text" class="form-control" id="txtValue3">
-            </div>
-            <button id="btnForm3" class="btn btn-primary">Submit</button>
-            <div class="alert alert-success" role="alert" style="font-size: 0.75rem;">
-                <ul id="ulClientTimeHistory3"></ul>
-            </div>
-        </fieldset>
-    </div>
 </div>
+
 
 @section scripts
 {

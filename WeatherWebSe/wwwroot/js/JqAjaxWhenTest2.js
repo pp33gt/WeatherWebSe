@@ -112,7 +112,7 @@ var JqAjaxWhenTest2;
             configurable: true
         });
         controllerBase.prototype.isFormsLoading = function (item) {
-            if (item.isLoading)
+            if (item.IsLoading)
                 this.numLoading += 1;
             else
                 this.numLoading -= 1;
@@ -121,6 +121,22 @@ var JqAjaxWhenTest2;
                 disableForm = true;
             }
             return disableForm;
+        };
+        controllerBase.prototype.handleDataBus = function (ajaxMethod, databusModel, model) {
+            var _this = this;
+            databusModel.setLoading(true);
+            this._databus.push(databusModel);
+            return ajaxMethod().done(function (data) {
+                var errorMsg = data.errorMessage === null ? '' : data.errorMessage;
+                model.error = errorMsg;
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                var errorMsg = 'textStatus: ' + textStatus + ' jqXHR.status ' + jqXHR.status + ' errorThrown: ' + errorThrown;
+                model.error = errorMsg;
+            }).always(function () {
+                databusModel.setLoading(false);
+                databusModel.update(model);
+                _this._databus.push(databusModel);
+            });
         };
         return controllerBase;
     }());
@@ -156,13 +172,13 @@ var JqAjaxWhenTest2;
         GuiMainController.prototype.onData = function (item) {
             switch (item.kind) {
                 case databusBase.databusModel1:
-                    this.part1Loading = item.isLoading;
+                    this.part1Loading = item.IsLoading;
                     break;
                 case databusBase.databusModel2:
-                    this.part2Loading = item.isLoading;
+                    this.part2Loading = item.IsLoading;
                     break;
                 case databusBase.databusModel3:
-                    this.part3Loading = item.isLoading;
+                    this.part3Loading = item.IsLoading;
                     break;
             }
             var disable = false;
@@ -231,10 +247,7 @@ var JqAjaxWhenTest2;
         Gui1Controller.prototype.onDataBusEvt = function (item) {
         };
         Gui1Controller.prototype.onBtnFormClick = function () {
-            var model = this._model;
             var deferred = $.Deferred();
-            model.history.push((new Date()).toString());
-            this.updateGui();
             this.postForm().done(function () {
                 deferred.resolve();
             });
@@ -246,42 +259,38 @@ var JqAjaxWhenTest2;
         };
         Gui1Controller.prototype.fetchServerTime = function () {
             var _this = this;
-            var model = this._model;
+            var model = this.model;
             model.serverTime = null;
             this.updateGui();
-            this._databus.addData(new databusModel1(true, model));
-            var getFormData = function () { return _this._service.getServerTime(10000)
+            var databusModel = new databusModel1(model);
+            var getFormData = function () { return _this._service.getServerTime(5000)
                 .done(function (data) {
-                var errorMsg = data.errorMessage === null ? '' : data.errorMessage;
-                model.error = errorMsg;
                 model.serverTime = data.result;
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+            }).always(function () {
                 _this.updateGui();
-                _this._databus.addData(new databusModel1(false, model));
-            })
-                .fail(function (jqXHR, textStatus, errorThrown) {
-                var errorMsg = 'textStatus: ' + textStatus + ' jqXHR.status ' + jqXHR.status + ' errorThrown: ' + errorThrown;
-                model.error = errorMsg;
             }); };
-            return getFormData();
+            return this.handleDataBus(getFormData, databusModel, model);
         };
         Gui1Controller.prototype.postForm = function () {
             var _this = this;
-            var model = this._model;
+            var model = this.model;
+            model.history.push((new Date()).toString());
+            var history = model.history.splice(0);
+            model.history = new Array();
             var value = $('#' + this.txtValue1).val().toString();
-            var history = model.history;
-            var form1Data = new Ajax.FormData(value, history, 5000, '');
-            this._databus.addData(new databusModel1(true, model));
-            return this._service.postServerTimes(form1Data)
+            var formData = new Ajax.FormData(value, history, 5000, '');
+            this.updateGui();
+            var postServerTimes = function () { return _this._service.postServerTimes(formData)
                 .done(function (data) {
-                var errorMsg = data.errorMessage === null ? '' : data.errorMessage;
-                model.error = errorMsg;
                 model.history = data.historyValues;
-                _this._databus.addData(new databusModel1(false, model));
             })
                 .fail(function (jqXHR, textStatus, errorThrown) {
-                var errorMsg = 'textStatus: ' + textStatus + ' jqXHR.status ' + jqXHR.status + ' errorThrown: ' + errorThrown;
-                model.error = errorMsg;
-            });
+            }).always(function () {
+                _this.updateGui();
+            }); };
+            var databusModel = new databusModel1(model);
+            return this.handleDataBus(postServerTimes, databusModel, model);
         };
         Gui1Controller.prototype.updateGui = function () {
             var _this = this;
@@ -321,7 +330,7 @@ var JqAjaxWhenTest2;
         Gui2Controller.prototype.onDataBusEvt = function (item) {
             switch (item.kind) {
                 case databusBase.databusModel1:
-                    this.model.preReqServerTime1 = item.serverTime;
+                    this.model.preReqServerTime1 = item.ServerTime;
                     break;
             }
             var isFormLoadning = _super.prototype.isFormsLoading.call(this, item);
@@ -337,8 +346,6 @@ var JqAjaxWhenTest2;
         Gui2Controller.prototype.onBtnFormClick = function () {
             var model = this.model;
             var deferred = $.Deferred();
-            model.history.push((new Date()).toString());
-            this.updateGui();
             this.postForm(model.preReqServerTime1).done(function () {
                 deferred.resolve();
             });
@@ -353,39 +360,35 @@ var JqAjaxWhenTest2;
             var model = this.model;
             model.serverTime = null;
             this.updateGui();
-            this._databus.addData(new databusModel2(true, model));
-            var getFormData = function () { return _this._service.getServerTime(5000)
+            var databusModel = new databusModel2(model);
+            var getFormData = function () { return _this._service.getServerTime(10000)
                 .done(function (data) {
-                var errorMsg = data.errorMessage === null ? '' : data.errorMessage;
-                model.error = errorMsg;
                 model.serverTime = data.result;
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+            }).always(function () {
                 _this.updateGui();
-                _this._databus.addData(new databusModel2(false, model));
-            })
-                .fail(function (jqXHR, textStatus, errorThrown) {
-                var errorMsg = 'textStatus: ' + textStatus + ' jqXHR.status ' + jqXHR.status + ' errorThrown: ' + errorThrown;
-                model.error = errorMsg;
             }); };
-            return getFormData();
+            return this.handleDataBus(getFormData, databusModel, model);
         };
         Gui2Controller.prototype.postForm = function (prerequisiteValue) {
             var _this = this;
-            var model = this._model;
+            var model = this.model;
+            model.history.push((new Date()).toString());
+            var history = model.history.splice(0);
+            model.history = new Array();
             var value = $('#' + this.txtValue2).val().toString();
-            var history = model.history;
-            var form1Data = new Ajax.FormData(value, history, 5000, prerequisiteValue);
-            this._databus.addData(new databusModel2(true, model));
-            return this._service.postServerTimes(form1Data)
+            var formData = new Ajax.FormData(value, history, 5000, prerequisiteValue);
+            this.updateGui();
+            var postServerTimes = function () { return _this._service.postServerTimes(formData)
                 .done(function (data) {
-                var errorMsg = data.errorMessage === null ? '' : data.errorMessage;
-                model.error = errorMsg;
                 model.history = data.historyValues;
-                _this._databus.addData(new databusModel2(false, model));
             })
                 .fail(function (jqXHR, textStatus, errorThrown) {
-                var errorMsg = 'textStatus: ' + textStatus + ' jqXHR.status ' + jqXHR.status + ' errorThrown: ' + errorThrown;
-                model.error = errorMsg;
-            });
+            }).always(function () {
+                _this.updateGui();
+            }); };
+            var databusModel = new databusModel2(model);
+            return this.handleDataBus(postServerTimes, databusModel, model);
         };
         Gui2Controller.prototype.updateGui = function () {
             var _this = this;
@@ -426,7 +429,7 @@ var JqAjaxWhenTest2;
         Gui3Controller.prototype.onDataBusEvt = function (item) {
             switch (item.kind) {
                 case databusBase.databusModel1:
-                    this.model.preReqServerTime1 = item.serverTime;
+                    this.model.preReqServerTime1 = item.ServerTime;
                     break;
             }
             var isFormLoadning = _super.prototype.isFormsLoading.call(this, item);
@@ -442,8 +445,6 @@ var JqAjaxWhenTest2;
         Gui3Controller.prototype.onBtnFormClick = function () {
             var model = this.model;
             var deferred = $.Deferred();
-            model.history.push((new Date()).toString());
-            this.updateGui();
             this.postForm(model.preReqServerTime1).done(function () {
                 deferred.resolve();
             });
@@ -458,39 +459,36 @@ var JqAjaxWhenTest2;
             var model = this.model;
             model.serverTime = null;
             this.updateGui();
-            this._databus.addData(new databusPart3(true, model));
+            var databusModel = new databusModel3(model);
             var getFormData = function () { return _this._service.getServerTime(5000)
                 .done(function (data) {
-                var errorMsg = data.errorMessage === null ? '' : data.errorMessage;
-                model.error = errorMsg;
                 model.serverTime = data.result;
+                0;
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+            }).always(function () {
                 _this.updateGui();
-                _this._databus.addData(new databusPart3(false, model));
-            })
-                .fail(function (jqXHR, textStatus, errorThrown) {
-                var errorMsg = 'textStatus: ' + textStatus + ' jqXHR.status ' + jqXHR.status + ' errorThrown: ' + errorThrown;
-                model.error = errorMsg;
             }); };
-            return getFormData();
+            return this.handleDataBus(getFormData, databusModel, model);
         };
         Gui3Controller.prototype.postForm = function (prerequisiteValue) {
             var _this = this;
             var model = this.model;
+            model.history.push((new Date()).toString());
+            var history = model.history.splice(0);
+            model.history = new Array();
             var value = $('#' + this.txtValue3).val().toString();
-            var history = model.history;
             var formData = new Ajax.FormData(value, history, 5000, prerequisiteValue);
-            this._databus.addData(new databusPart3(true, model));
-            return this._service.postServerTimes(formData)
+            this.updateGui();
+            var postServerTimes = function () { return _this._service.postServerTimes(formData)
                 .done(function (data) {
-                var errorMsg = data.errorMessage === null ? '' : data.errorMessage;
-                model.error = errorMsg;
                 model.history = data.historyValues;
-                _this._databus.addData(new databusPart3(false, model));
             })
                 .fail(function (jqXHR, textStatus, errorThrown) {
-                var errorMsg = 'textStatus: ' + textStatus + ' jqXHR.status ' + jqXHR.status + ' errorThrown: ' + errorThrown;
-                model.error = errorMsg;
-            });
+            }).always(function () {
+                _this.updateGui();
+            }); };
+            var databusModel = new databusModel3(model);
+            return this.handleDataBus(postServerTimes, databusModel, model);
         };
         Gui3Controller.prototype.updateGui = function () {
             var _this = this;
@@ -508,13 +506,29 @@ var JqAjaxWhenTest2;
         return Gui3Controller;
     }(controllerBase));
     var databusBase = /** @class */ (function () {
-        function databusBase(kind, isLoading, serverTime) {
-            this.serverTime = '';
+        function databusBase(kind, serverTime) {
+            this.serverTime = null;
             this.isLoading = false;
             this.kind = kind;
-            this.isLoading = isLoading;
             this.serverTime = serverTime;
         }
+        databusBase.prototype.setLoading = function (loading) {
+            this.isLoading = loading;
+        };
+        Object.defineProperty(databusBase.prototype, "IsLoading", {
+            get: function () {
+                return this.isLoading;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(databusBase.prototype, "ServerTime", {
+            get: function () {
+                return this.serverTime;
+            },
+            enumerable: true,
+            configurable: true
+        });
         databusBase.databusModel1 = 'databusModel1';
         databusBase.databusModel2 = 'databusModel2';
         databusBase.databusModel3 = 'databusModel3';
@@ -522,24 +536,33 @@ var JqAjaxWhenTest2;
     }());
     var databusModel1 = /** @class */ (function (_super) {
         __extends(databusModel1, _super);
-        function databusModel1(isLoading, model) {
-            return _super.call(this, databusBase.databusModel1, isLoading, model.serverTime) || this;
+        function databusModel1(model) {
+            return _super.call(this, databusBase.databusModel1, model.serverTime) || this;
         }
+        databusModel1.prototype.update = function (model) {
+            this.serverTime = model.serverTime;
+        };
         return databusModel1;
     }(databusBase));
     var databusModel2 = /** @class */ (function (_super) {
         __extends(databusModel2, _super);
-        function databusModel2(isLoading, model) {
-            return _super.call(this, databusBase.databusModel2, isLoading, model.serverTime) || this;
+        function databusModel2(model) {
+            return _super.call(this, databusBase.databusModel2, model.serverTime) || this;
         }
+        databusModel2.prototype.update = function (model) {
+            this.serverTime = model.serverTime;
+        };
         return databusModel2;
     }(databusBase));
-    var databusPart3 = /** @class */ (function (_super) {
-        __extends(databusPart3, _super);
-        function databusPart3(isLoading, model) {
-            return _super.call(this, databusBase.databusModel3, isLoading, model.serverTime) || this;
+    var databusModel3 = /** @class */ (function (_super) {
+        __extends(databusModel3, _super);
+        function databusModel3(model) {
+            return _super.call(this, databusBase.databusModel3, model.serverTime) || this;
         }
-        return databusPart3;
+        databusModel3.prototype.update = function (model) {
+            this.serverTime = model.serverTime;
+        };
+        return databusModel3;
     }(databusBase));
     var databus = /** @class */ (function () {
         function databus(databusItems) {
@@ -550,7 +573,7 @@ var JqAjaxWhenTest2;
         databus.prototype.addListener = function (listener) {
             this._listeners.push(listener);
         };
-        databus.prototype.addData = function (obj) {
+        databus.prototype.push = function (obj) {
             this._databusItems.push(obj);
             this.notify();
         };

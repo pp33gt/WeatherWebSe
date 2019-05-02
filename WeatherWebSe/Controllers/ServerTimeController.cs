@@ -66,7 +66,7 @@ namespace WeatherWebSe.Controllers
             {
                 if (model.historyValues?.Count >= 5)
                 {
-                    model.ErrorMessage = "Max number of History items reached, resetting";
+                    model.ErrorMessage = "Max number of history items reached, reseting";
                     model.historyValues = new List<string>();
                 }
 
